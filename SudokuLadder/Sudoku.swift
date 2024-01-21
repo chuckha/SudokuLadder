@@ -5,25 +5,14 @@
 //  Created by chuck ha on 1/19/24.
 //
 
-struct Cell: Identifiable, Hashable{
-    var id : String {
-        "\(col),\(row)"
-    }
+struct Cell{
+
     let box : Int
     let row : Int
     let col : Int
-    var value: Int = -1
+    var value: Int?
     var pencilMarks: [Int] = []
     var centerMarks: [Int] = []
-    
-    var selected: Bool = false
-    
-    func displayValue() -> String {
-        if value == -1 {
-            return ""
-        }
-        return "\(value)"
-    }
     
     // TODO: consider adding feature: when you click number and the number is already set, unset the number
     mutating func setValue(value: Int) {
@@ -70,30 +59,30 @@ struct Sudoku {
         self.cells = cells
     }
 
-    mutating func selectCell(row: Int, col: Int) {
-        cells[row][col].selected = true
-    }
-
-    mutating func unselectAllExcept(cell: Cell) {
-        for (i, row) in cells.enumerated() {
-            for (j, _) in row.enumerated(){
-                cells[i][j].selected = i == cell.row && j == cell.col
-            }
-        }
-    }
-
-    func selected() -> [Cell] {
-        var out: [Cell] = []
-        // TODO: use a filter / learn predicate
-        for (i, row) in cells.enumerated() {
-            for (j, _) in row.enumerated(){
-                if cells[i][j].selected {
-                    out.append(cells[i][j])
-                }
-            }
-        }
-        return out
-    }
+//    mutating func selectCell(row: Int, col: Int) {
+//        cells[row][col].selected = true
+//    }
+//
+//    mutating func unselectAllExcept(cell: Cell) {
+//        for (i, row) in cells.enumerated() {
+//            for (j, _) in row.enumerated(){
+//                cells[i][j].selected = i == cell.row && j == cell.col
+//            }
+//        }
+//    }
+//
+//    func selected() -> [Cell] {
+//        var out: [Cell] = []
+//        // TODO: use a filter / learn predicate
+//        for (i, row) in cells.enumerated() {
+//            for (j, _) in row.enumerated(){
+//                if cells[i][j].selected {
+//                    out.append(cells[i][j])
+//                }
+//            }
+//        }
+//        return out
+//    }
 }
 
 func nineByNineBox(row: Int, col: Int) -> Int {
