@@ -168,7 +168,7 @@ struct EdgeBorder: Shape {
 			path.move(to: CGPoint(x: rect.minX, y: rect.minY))
 			path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
 		}
-        if edges.contains(.leading) {
+		if edges.contains(.leading) {
 			path.move(to: CGPoint(x: rect.minX, y: rect.minY))
 			path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
 		}
