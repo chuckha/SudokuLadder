@@ -10,4 +10,5 @@ repos:
     name: Swift Format
     language: system
     types: [swift]
-
+    files: \.swift$
+    args: ['--configuration', 'cfg.json', '--in-place']
