@@ -6,7 +6,6 @@
 //
 
 struct Cell {
-
 	let box: Int
 	let row: Int
 	let col: Int
@@ -22,13 +21,13 @@ struct Cell {
 	mutating func addPencilMark(value: Int) {
 		// TODO: do not allow duplicates
 		// TODO: sort the list
-		self.pencilMarks.append(value)
+		pencilMarks.append(value)
 	}
 
 	mutating func addCenterMark(value: Int) {
 		// TODO: do not allow duplicates
 		// TODO: sort the list
-		self.centerMarks.append(value)
+		centerMarks.append(value)
 	}
 }
 
@@ -41,17 +40,17 @@ struct Sudoku {
 
 	init(cells: [[Cell]]) {
 		self.cells = cells
-		self.height = cells.count
-		self.width = cells[0].count
+		height = cells.count
+		width = cells[0].count
 	}
 
 	init() {
-		self.width = 9
-		self.height = 9
+		width = 9
+		height = 9
 		var cells: [[Cell]] = []
-		for i in 0..<height {
+		for i in 0 ..< height {
 			var row: [Cell] = []
-			for j in 0..<width {
+			for j in 0 ..< width {
 				row.append(Cell(box: nineByNineBox(row: i, col: j), row: i, col: j))
 			}
 			cells.append(row)

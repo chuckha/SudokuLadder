@@ -42,13 +42,13 @@ func c(_ row: Int, _ col: Int, _ box: Int) -> [String: Int] {
 }
 
 func layoutToSuduoku(_ dic: [[String: Int]]) -> Sudoku {
-	let cells = dic.map { (entry) -> Cell in
+	let cells = dic.map { entry -> Cell in
 		Cell(box: entry["box"]!, row: entry["row"]!, col: entry["col"]!)
 	}
 	var sudokuCells: [[Cell]] = []
-	for _ in 0..<9 {
+	for _ in 0 ..< 9 {
 		var row: [Cell] = []
-		for _ in 0..<9 {
+		for _ in 0 ..< 9 {
 			row.append(Cell(box: 0, row: 0, col: 0))
 		}
 		sudokuCells.append(row)
@@ -64,7 +64,7 @@ func layoutToSuduoku(_ dic: [[String: Int]]) -> Sudoku {
 // - [] edit value
 
 struct ContentView: View {
-	@StateObject private var sudoku: SudokuViewModelV2 = SudokuViewModelV2(
+	@StateObject private var sudoku: SudokuViewModelV2 = .init(
 		sudoku: layoutToSuduoku(normalSudoku))
 
 	var body: some View {
@@ -95,12 +95,11 @@ struct CellView: View {
 	@ObservedObject var cell: CellViewModel
 
 	var body: some View {
-
-	ZStack {
-		Rectangle()
-			.frame(width: cellWidth, height: cellHeight)
-			.foregroundColor(cell.color())
-	.overlay(
+		ZStack {
+			Rectangle()
+				.frame(width: cellWidth, height: cellHeight)
+				.foregroundColor(cell.color())
+				.overlay(
 					EdgeBorder(color: Color.primary, width: 3.0, edges: cell.boxBorder)
 						.stroke()
 				)
@@ -109,7 +108,7 @@ struct CellView: View {
 	}
 }
 
-//struct NumpadView: View {
+// struct NumpadView: View {
 //    @ObservedObject var viewModel: SudokuViewModelV2
 //
 //    var body: some View {
@@ -127,7 +126,7 @@ struct CellView: View {
 //            }
 //        }
 //    }
-//}
+// }
 
 struct ControlsView: View {
 	@Binding var controlMode: ControlMode
@@ -149,10 +148,10 @@ struct ControlsView: View {
 	}
 }
 
-//struct BorderStyle {
+// struct BorderStyle {
 //    var color: Color = Color.primary
 //    var width: CGFloat
-//}
+// }
 
 #Preview {
 	ContentView()
@@ -185,6 +184,6 @@ struct EdgeBorder: Shape {
 	}
 
 	func stroke() -> some View {
-		self.stroke(color, style: StrokeStyle(lineWidth: width))
+		stroke(color, style: StrokeStyle(lineWidth: width))
 	}
 }

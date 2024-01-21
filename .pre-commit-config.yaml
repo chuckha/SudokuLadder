@@ -3,12 +3,7 @@ repos:
   rev: v1.2.3
   hooks:
   - id: trailing-whitespace
-- repo: local
+- repo: https://github.com/nicklockwood/SwiftFormat
+  rev: 0.53.0
   hooks:
-  - id: swift-format
-    entry: swift-format
-    name: Swift Format
-    language: system
-    types: [swift]
-    files: \.swift$
-    args: ['--configuration', 'cfg.json']
+  - id: swiftformat

@@ -10,7 +10,7 @@ import SwiftUI
 let cellWidth: CGFloat = 40
 let cellHeight: CGFloat = 40
 
-//class SudokuViewModel: ObservableObject {
+// class SudokuViewModel: ObservableObject {
 ////    @Published var board: Sudoku
 //    @Published var currentMode: ControlMode = .BigNumber
 //    @Published var cells: [[CellViewModel]]
@@ -78,7 +78,7 @@ let cellHeight: CGFloat = 40
 //            }
 //        }
 //    }
-//}
+// }
 
 // SudokuViewModel is the model that layers UI concerns on top of sudoku.
 // What are the UI concerns of sudoku? How big it is? No. Where the borders are? Yes!
@@ -88,8 +88,8 @@ class SudokuViewModelV2: ObservableObject {
 
 	init(sudoku: Sudoku) {
 		self.sudoku = sudoku
-		cells = sudoku.cells.map { (row) -> [CellViewModel] in
-			row.map { (cell) -> CellViewModel in
+		cells = sudoku.cells.map { row -> [CellViewModel] in
+			row.map { cell -> CellViewModel in
 				CellViewModel(cell: cell)
 			}
 		}
@@ -98,8 +98,8 @@ class SudokuViewModelV2: ObservableObject {
 		// if the neighbor is in the same box, do not set the border
 		// if the neighbor is not in the same box, add a border
 		// if the value is outside the bounds, add a border
-		cells.forEach { (row) in
-			row.forEach { (cell) in
+		for row in cells {
+			for cell in row {
 				var top = false
 				var leading = false
 				var bottom = false
@@ -144,8 +144,8 @@ class SudokuViewModelV2: ObservableObject {
 				cell.setBoxBorder(top: top, leading: leading, bottom: bottom, trailing: trailing)
 			}
 		}
-
 	}
+
 	convenience init() {
 		self.init(sudoku: Sudoku())
 	}
@@ -168,13 +168,11 @@ class SudokuViewModelV2: ObservableObject {
 				cells[i][j].selected = false
 			}
 		}
-
 	}
 }
 
 // CellViewModel is the model that layers UI concerns on top of cells.
 class CellViewModel: ObservableObject, Hashable {
-
 	let id = UUID()
 	private var cell: Cell
 	@Published var boxBorder: Edge.Set = []
