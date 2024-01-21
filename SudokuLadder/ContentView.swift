@@ -95,11 +95,12 @@ struct CellView: View {
 	@ObservedObject var cell: CellViewModel
 
 	var body: some View {
-		ZStack {
-			Rectangle()
-				.frame(width: cellWidth, height: cellHeight)
-				.foregroundColor(cell.color())
-				.overlay(
+
+	ZStack {
+		Rectangle()
+			.frame(width: cellWidth, height: cellHeight)
+			.foregroundColor(cell.color())
+	.overlay(
 					EdgeBorder(color: Color.primary, width: 3.0, edges: cell.boxBorder)
 						.stroke()
 				)

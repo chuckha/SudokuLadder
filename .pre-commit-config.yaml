@@ -11,4 +11,4 @@ repos:
     language: system
     types: [swift]
     files: \.swift$
-    args: ['--configuration', 'cfg.json', '--in-place']
+    args: ['--configuration', 'cfg.json']
