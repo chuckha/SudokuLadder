@@ -111,8 +111,38 @@ struct CellView: View {
 					EdgeBorder(color: cell.selectedColor, width: 4.0, edges: cell.selectedBorder, offset: 2.0)
 						.stroke()
 				)
-			Text(cell.display())
+			if cell.display() == "" {
+				let (top, bottom) = splitArray(cell.pencilMarks())
+				VStack {
+					HStack {
+						ForEach(top, id: \.self) { num in
+							Text(num).font(.system(size: 10))
+						}
+					}
+					Spacer()
+					HStack {
+						ForEach(bottom, id: \.self) { num in
+							Text(num).font(.system(size: 10))
+						}
+					}
+				}
+				.frame(width: cellWidth, height: cellHeight)
+				Text("1").font(.system(size: 10))
+			} else {
+				Text(cell.display())
+					.font(.system(size: 30))
+			}
 		}
+	}
+}
+
+func splitArray<T>(_ array: [T]) -> ([T], [T]) {
+	if array.count < 4 {
+		return (array, [])
+	} else {
+		let firstHalf = Array(array.prefix(4))
+		let secondHalf = Array(array.dropFirst(4))
+		return (firstHalf, secondHalf)
 	}
 }
 

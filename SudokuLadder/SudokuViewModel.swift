@@ -10,76 +10,6 @@ import SwiftUI
 let cellWidth: CGFloat = 40
 let cellHeight: CGFloat = 40
 
-// class SudokuViewModel: ObservableObject {
-////    @Published var board: Sudoku
-//    @Published var currentMode: ControlMode = .BigNumber
-//    @Published var cells: [[CellViewModel]]
-//
-//    var sudoku: Sudoku
-//
-//    init(sudoku: Sudoku) {
-//        cells = sudoku.cells.map { (row) -> [CellViewModel] in
-//            row.map {(cell) -> CellViewModel in
-//                CellViewModel(cell: cell)
-//            }
-//        }
-//    }
-//
-//    func unselectAllExcept(cell: CellViewModel) {
-//        sudoku.unselectAllExcept(cell: cell.cell)
-//    }
-//
-//    func selectCell(rowidx: Int, colidx: Int) {
-//        sudoku.selectCell(row: rowidx, col: colidx)
-//    }
-//
-//    func getCell(rowidx: Int, colidx: Int) -> CellViewModel {
-//        return cells[rowidx][colidx]
-//    }
-//
-//    func rows() -> [[Cell]] {
-//        return board.cells
-//    }
-//
-//    func column(idx: Int) -> [Cell] {
-//        return board.cells[idx]
-//    }
-//
-//    func rowCount() -> Int {
-//        return board.height
-//    }
-//
-//    func columnCount() -> Int {
-//        return board.width
-//    }
-//
-//    func selectCellFromPoint(at point: CGPoint, cw: CGFloat, ch: CGFloat) {
-//        let row = Int(point.y / cw)
-//        let column = Int(point.x / ch)
-//        if row >= 0 && row < board.height && column >= 0 && column < board.width {
-//            selectCell(rowidx: row, colidx: column)
-//        }
-//    }
-//
-//    func handleNumInput(input: Int) {
-//        let selected = board.selected()
-//        switch currentMode {
-//        case .BigNumber:
-//            for cell in selected {
-//                board.cells[cell.row][cell.col].setValue(value: input)
-//            }
-//        case .CornerNumber:
-//            for cell in selected {
-//                board.cells[cell.row][cell.col].addPencilMark(value: input)
-//            }
-//        case .MiddleNumber:
-//            for cell in selected {
-//                board.cells[cell.row][cell.col].addCenterMark(value: input)
-//            }
-//        }
-//    }
-// }
-
 // SudokuViewModel is the model that layers UI concerns on top of sudoku.
 // What are the UI concerns of sudoku? How big it is? No. Where the borders are? Yes!
 class SudokuViewModelV2: ObservableObject {
@@ -233,11 +163,17 @@ class CellViewModel: ObservableObject, Hashable {
 	}
 
 	func display() -> String {
-		cell.value?.description ?? "9"
+		cell.value?.description ?? ""
 	}
 
 	func select() {
 		selected = true
+	}
+
+	func pencilMarks() -> [String] {
+		return cell.pencilMarks.map { mark in
+			mark.description
+		}
 	}
 
 	func row() -> Int { return cell.row }
