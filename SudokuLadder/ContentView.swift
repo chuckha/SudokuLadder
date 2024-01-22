@@ -98,9 +98,17 @@ struct CellView: View {
 		ZStack {
 			Rectangle()
 				.frame(width: cellWidth, height: cellHeight)
-				.foregroundColor(cell.color())
+				.foregroundColor(cell.defaultColor)
 				.overlay(
 					EdgeBorder(color: Color.primary, width: 3.0, edges: cell.boxBorder)
+						.stroke()
+				)
+				.overlay(
+					EdgeBorder(color: Color.primary, width: 1.0, edges: .all)
+						.stroke()
+				)
+				.overlay(
+					EdgeBorder(color: cell.selectedColor, width: 4.0, edges: cell.selectedBorder, offset: 2.0)
 						.stroke()
 				)
 			Text(cell.display())
@@ -161,24 +169,25 @@ struct EdgeBorder: Shape {
 	var color: Color
 	var width: CGFloat
 	var edges: Edge.Set
+	var offset: CGFloat = 0
 
 	func path(in rect: CGRect) -> Path {
 		var path = Path()
 		if edges.contains(.top) {
-			path.move(to: CGPoint(x: rect.minX, y: rect.minY))
-			path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+			path.move(to: CGPoint(x: rect.minX + offset, y: rect.minY + offset))
+			path.addLine(to: CGPoint(x: rect.maxX - offset, y: rect.minY + offset))
 		}
 		if edges.contains(.leading) {
-			path.move(to: CGPoint(x: rect.minX, y: rect.minY))
-			path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+			path.move(to: CGPoint(x: rect.minX + offset, y: rect.minY + offset))
+			path.addLine(to: CGPoint(x: rect.minX + offset, y: rect.maxY - offset))
 		}
 		if edges.contains(.bottom) {
-			path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
-			path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+			path.move(to: CGPoint(x: rect.minX + offset, y: rect.maxY - offset))
+			path.addLine(to: CGPoint(x: rect.maxX - offset, y: rect.maxY - offset))
 		}
 		if edges.contains(.trailing) {
-			path.move(to: CGPoint(x: rect.maxX, y: rect.minY))
-			path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+			path.move(to: CGPoint(x: rect.maxX - offset, y: rect.minY + offset))
+			path.addLine(to: CGPoint(x: rect.maxX - offset, y: rect.maxY - offset))
 		}
 		return path
 	}

@@ -152,6 +152,39 @@ class SudokuViewModelV2: ObservableObject {
 
 	func selectCell(rowidx: Int, colidx: Int) {
 		cells[rowidx][colidx].select()
+		var top = true
+		var leading = true
+		var bottom = true
+		var trailing = true
+		// top
+		if rowidx > 0 {
+			if cells[rowidx - 1][colidx].selected {
+				top = false
+				cells[rowidx - 1][colidx].removeSelectionBorder(edge: .bottom)
+			}
+		}
+		// leading
+		if colidx > 0 {
+			if cells[rowidx][colidx - 1].selected {
+				leading = false
+				cells[rowidx][colidx - 1].removeSelectionBorder(edge: .trailing)
+			}
+		}
+		// bottom
+		if rowidx < sudoku.height - 1 {
+			if cells[rowidx + 1][colidx].selected {
+				bottom = false
+				cells[rowidx + 1][colidx].removeSelectionBorder(edge: .top)
+			}
+		}
+		// trailing
+		if colidx < sudoku.width - 1 {
+			if cells[rowidx][colidx + 1].selected {
+				trailing = false
+				cells[rowidx][colidx + 1].removeSelectionBorder(edge: .leading)
+			}
+		}
+		cells[rowidx][colidx].setSelectionBorder(top: top, leading: leading, bottom: bottom, trailing: trailing)
 	}
 
 	func selectCellFromPoint(at point: CGPoint) {
@@ -165,7 +198,7 @@ class SudokuViewModelV2: ObservableObject {
 	func clearSelection() {
 		for (i, cellRow) in cells.enumerated() {
 			for (j, _) in cellRow.enumerated() {
-				cells[i][j].selected = false
+				cells[i][j].unselect()
 			}
 		}
 	}
@@ -176,11 +209,8 @@ class CellViewModel: ObservableObject, Hashable {
 	let id = UUID()
 	private var cell: Cell
 	@Published var boxBorder: Edge.Set = []
+	@Published var selectedBorder: Edge.Set = []
 
-	@Published var top: Bool = false
-	@Published var leading: Bool = false
-	@Published var bottom: Bool = false
-	@Published var trailing: Bool = false
 	@Published var selected: Bool = false
 
 	let selectedColor = Color(red: 0.2, green: 0.2, blue: 0.6, opacity: 0.8)
@@ -188,6 +218,11 @@ class CellViewModel: ObservableObject, Hashable {
 
 	init(cell: Cell) {
 		self.cell = cell
+	}
+
+	func unselect() {
+		selectedBorder = []
+		selected = false
 	}
 
 	func color() -> Color {
@@ -208,6 +243,25 @@ class CellViewModel: ObservableObject, Hashable {
 	func row() -> Int { return cell.row }
 	func col() -> Int { return cell.col }
 	func box() -> Int { return cell.box }
+
+	func removeSelectionBorder(edge: Edge.Set) {
+		selectedBorder.remove(edge)
+	}
+
+	func setSelectionBorder(top: Bool = false, leading: Bool = false, bottom: Bool = false, trailing: Bool = false) {
+		if top {
+			selectedBorder.insert(.top)
+		}
+		if leading {
+			selectedBorder.insert(.leading)
+		}
+		if bottom {
+			selectedBorder.insert(.bottom)
+		}
+		if trailing {
+			selectedBorder.insert(.trailing)
+		}
+	}
 
 	func setBoxBorder(
 		top: Bool = false, leading: Bool = false, bottom: Bool = false, trailing: Bool = false
