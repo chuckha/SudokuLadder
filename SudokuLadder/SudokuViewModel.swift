@@ -82,6 +82,9 @@ class SudokuViewModelV2: ObservableObject {
 	}
 
 	func selectCell(rowidx: Int, colidx: Int) {
+		if cells[rowidx][colidx].selected {
+			return
+		}
 		cells[rowidx][colidx].select()
 		var top = true
 		var leading = true
@@ -116,6 +119,45 @@ class SudokuViewModelV2: ObservableObject {
 			}
 		}
 		cells[rowidx][colidx].setSelectionBorder(top: top, leading: leading, bottom: bottom, trailing: trailing)
+
+		let selected = selected()
+		for cell in selected {
+			let ri = cell.row()
+			let ci = cell.col()
+			var topRight = false
+			var bottomRight = false
+			var bottomLeft = false
+			var topLeft = false
+
+			// check up right
+			if ri > 0 && ci < sudoku.width - 1 {
+				if !cells[ri - 1][ci + 1].selected && cells[ri - 1][ci].selected && cells[ri][ci + 1].selected {
+					topRight = true
+				}
+			}
+			// check bottom right
+			if ri < sudoku.height - 1 && ci < sudoku.width - 1 {
+				if !cells[ri + 1][ci + 1].selected && cells[ri + 1][ci].selected && cells[ri][ci + 1].selected {
+					bottomRight = true
+				}
+			}
+
+			// check botttom left
+			if ri < sudoku.height - 1 && ci > 0 {
+				if !cells[ri + 1][ci - 1].selected && cells[ri + 1][ci].selected && cells[ri][ci - 1].selected {
+					bottomLeft = true
+				}
+			}
+
+			// check up left
+			if ri > 0 && ci > 0 {
+				if !cells[ri - 1][ci - 1].selected && cells[ri - 1][ci].selected && cells[ri][ci - 1].selected {
+					topLeft = true
+				}
+			}
+			print("tr: \(topRight)", "br: \(bottomRight)", "bl: \(bottomLeft)", "tl: \(topLeft)")
+			cells[ri][ci].setCornerSelectionBorder(topLeft: topLeft, bottomLeft: bottomLeft, bottomRight: bottomRight, topRight: topRight)
+		}
 	}
 
 	func selectCellFromPoint(at point: CGPoint) {
@@ -222,6 +264,8 @@ class CellViewModel: ObservableObject, Hashable {
 	@Published var cell: Cell
 	@Published var boxBorder: Edge.Set = []
 	@Published var selectedBorder: Edge.Set = []
+	// for corner borders I wil use .top to mean top left; leading to mean bottom left; bottom to mean bottom right; and trailing to mean top right
+	@Published var cornerBorders: Edge.Set = []
 	@Published var selected: Bool = false
 	@Published var pencilMarks: Set<Int> = Set()
 	@Published var centerMarks: Set<Int> = Set()
@@ -235,6 +279,7 @@ class CellViewModel: ObservableObject, Hashable {
 
 	func unselect() {
 		selectedBorder = []
+		cornerBorders = []
 		selected = false
 	}
 
@@ -284,6 +329,22 @@ class CellViewModel: ObservableObject, Hashable {
 
 	func removeSelectionBorder(edge: Edge.Set) {
 		selectedBorder.remove(edge)
+	}
+
+	func setCornerSelectionBorder(topLeft: Bool = false, bottomLeft: Bool = false, bottomRight: Bool = false, topRight: Bool = false) {
+		cornerBorders = []
+		if topLeft {
+			cornerBorders.insert(.top)
+		}
+		if bottomLeft {
+			cornerBorders.insert(.leading)
+		}
+		if bottomRight {
+			cornerBorders.insert(.bottom)
+		}
+		if topRight {
+			cornerBorders.insert(.trailing)
+		}
 	}
 
 	// TODO: set trailing and bottom on all; then set top on the top row and leading on the leading column

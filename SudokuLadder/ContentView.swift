@@ -61,9 +61,11 @@ func layoutToSuduoku(_ dic: [[String: Int]]) -> Sudoku {
 
 // - [x] add borders to cells
 // - [] constraints (cell constraints, row constraints, column constraints, box constraints, grid constraints, etc)
-// - [] edit value
-// - [] add middle marks
-// - [] controls
+// - [x] edit value
+// - [x] add middle marks
+// - [x] controls
+// - [] fix the border width problem (don't do double borders, just one for better control
+// - [] corner border
 
 struct ContentView: View {
 	@StateObject private var sudoku: SudokuViewModelV2 = .init(
@@ -100,22 +102,27 @@ struct ContentView: View {
 
 struct CellView: View {
 	@ObservedObject var cell: CellViewModel
-
+	let borderWidth: CGFloat = 4.0
 	var body: some View {
+		let offset: CGFloat = borderWidth * 0.5
 		ZStack {
 			Rectangle()
 				.frame(width: cellWidth, height: cellHeight)
 				.foregroundColor(cell.defaultColor)
-				.overlay(
+				.overlay( // Box grid
 					EdgeBorder(color: Color.primary, width: 3.0, edges: cell.boxBorder)
 						.stroke()
 				)
-				.overlay(
+				.overlay( // cell grid
 					EdgeBorder(color: Color.primary, width: 1.0, edges: .all)
 						.stroke()
 				)
+				.overlay( // selection
+					EdgeBorder(color: cell.selectedColor, width: borderWidth, edges: cell.selectedBorder, offset: offset)
+						.stroke()
+				)
 				.overlay(
-					EdgeBorder(color: cell.selectedColor, width: 4.0, edges: cell.selectedBorder, offset: 2.0)
+					CornerBorder(color: cell.selectedColor, width: borderWidth, edges: cell.cornerBorders, offset: offset)
 						.stroke()
 				)
 			if cell.display() == "" {
@@ -172,6 +179,7 @@ struct NumpadView: View {
 							sudoku.handleNumInput(input: val)
 						}, label: {
 							Text(val.description)
+								.padding(10)
 						})
 					}
 				}.buttonStyle(.bordered)
@@ -181,11 +189,14 @@ struct NumpadView: View {
 					sudoku.handleNumInput(input: 0)
 				}, label: {
 					Text("0")
+						.padding(10)
 				})
 				Button(action: {
 					sudoku.handleDelete()
 				}, label: {
 					Text("DELETE")
+						.padding(10)
+						.padding([.leading, .trailing], 6)
 				})
 			}.buttonStyle(.bordered)
 		}
@@ -247,20 +258,52 @@ struct EdgeBorder: Shape {
 	func path(in rect: CGRect) -> Path {
 		var path = Path()
 		if edges.contains(.top) {
-			path.move(to: CGPoint(x: rect.minX + offset, y: rect.minY + offset))
-			path.addLine(to: CGPoint(x: rect.maxX - offset, y: rect.minY + offset))
+			path.move(to: CGPoint(x: rect.minX, y: rect.minY + offset))
+			path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + offset))
 		}
 		if edges.contains(.leading) {
-			path.move(to: CGPoint(x: rect.minX + offset, y: rect.minY + offset))
-			path.addLine(to: CGPoint(x: rect.minX + offset, y: rect.maxY - offset))
+			path.move(to: CGPoint(x: rect.minX + offset, y: rect.minY))
+			path.addLine(to: CGPoint(x: rect.minX + offset, y: rect.maxY))
 		}
 		if edges.contains(.bottom) {
-			path.move(to: CGPoint(x: rect.minX + offset, y: rect.maxY - offset))
-			path.addLine(to: CGPoint(x: rect.maxX - offset, y: rect.maxY - offset))
+			path.move(to: CGPoint(x: rect.minX, y: rect.maxY - offset))
+			path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - offset))
 		}
 		if edges.contains(.trailing) {
-			path.move(to: CGPoint(x: rect.maxX - offset, y: rect.minY + offset))
-			path.addLine(to: CGPoint(x: rect.maxX - offset, y: rect.maxY - offset))
+			path.move(to: CGPoint(x: rect.maxX - offset, y: rect.minY))
+			path.addLine(to: CGPoint(x: rect.maxX - offset, y: rect.maxY))
+		}
+		return path
+	}
+
+	func stroke() -> some View {
+		stroke(color, style: StrokeStyle(lineWidth: width))
+	}
+}
+
+struct CornerBorder: Shape {
+	var color: Color
+	var width: CGFloat
+	var edges: Edge.Set
+	var offset: CGFloat = 0
+
+	func path(in rect: CGRect) -> Path {
+		var path = Path()
+		if edges.contains(.top) { // upleft
+			path.move(to: CGPoint(x: rect.minX, y: rect.minY + offset))
+			path.addLine(to: CGPoint(x: rect.minX + width, y: rect.minY + offset))
+		}
+		if edges.contains(.leading) { // bottom left
+			path.move(to: CGPoint(x: rect.minX + offset, y: rect.maxY))
+			path.addLine(to: CGPoint(x: rect.minX + offset, y: rect.maxY - width))
+		}
+		if edges.contains(.bottom) { // bottom right
+			path.move(to: CGPoint(x: rect.maxX, y: rect.maxY - offset))
+			path.addLine(to: CGPoint(x: rect.maxX - width, y: rect.maxY - offset))
+		}
+		if edges.contains(.trailing) { // top right
+			path.move(to: CGPoint(x: rect.maxX - offset, y: rect.minY))
+			path.addLine(to: CGPoint(x: rect.maxX - offset, y: rect.minY + width))
 		}
 		return path
 	}
