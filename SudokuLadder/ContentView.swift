@@ -89,7 +89,8 @@ struct ContentView: View {
 						}
 						sudoku.selectCellFromPoint(at: value.location)
 					})
-			HStack {
+			.padding([.bottom])
+			HStack(alignment: .top) {
 				NumpadView(sudoku: sudoku)
 				ControlsView(controlMode: $sudoku.currentMode)
 			}
@@ -167,13 +168,26 @@ struct NumpadView: View {
 				HStack {
 					ForEach(0 ... 2, id: \.self) { j in
 						let val = i * 3 + j + 1
-						Text("\(val)")
-							.onTapGesture {
-								sudoku.handleNumInput(input: val)
-							}
+						Button(action: {
+							sudoku.handleNumInput(input: val)
+						}, label: {
+							Text(val.description)
+						})
 					}
-				}
+				}.buttonStyle(.bordered)
 			}
+			HStack {
+				Button(action: {
+					sudoku.handleNumInput(input: 0)
+				}, label: {
+					Text("0")
+				})
+				Button(action: {
+					sudoku.handleDelete()
+				}, label: {
+					Text("DELETE")
+				})
+			}.buttonStyle(.bordered)
 		}
 	}
 }
@@ -187,39 +201,38 @@ struct ControlsView: View {
 				Button(action: {
 					controlMode = .BigNumber
 				}, label: {
-					Text("9")
-						.font(.system(size: 32))
+					Text("Value mode")
+
+						.padding([.all], 7)
 				})
+				.buttonStyle(ControlButtonStyle(active: controlMode == .BigNumber))
 				Button(action: {
 					controlMode = .CornerNumber
 				}, label: {
-					VStack {
-						HStack {
-							Text("1")
-							Text("2")
-						}
-						HStack {
-							Text("3")
-						}
-					}
+					Text("Corner mark")
+						.padding([.all], 7)
 				})
+				.buttonStyle(ControlButtonStyle(active: controlMode == .CornerNumber))
 				Button(action: {
 					controlMode = .MiddleNumber
 				}, label: {
-					HStack {
-						Text("1")
-						Text("2")
-					}
+					Text("Middle mark")
+						.padding([.all], 7)
 				})
+				.buttonStyle(ControlButtonStyle(active: controlMode == .MiddleNumber))
 			}
 		}
 	}
 }
 
-// struct BorderStyle {
-//    var color: Color = Color.primary
-//    var width: CGFloat
-// }
+struct ControlButtonStyle: ButtonStyle {
+	var active: Bool = false
+	func makeBody(configuration: Configuration) -> some View {
+		configuration.label
+			.background(active ? Color.blue : Color.gray)
+			.clipShape(RoundedRectangle(cornerRadius: 5))
+	}
+}
 
 #Preview {
 	ContentView()

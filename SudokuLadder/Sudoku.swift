@@ -11,7 +11,7 @@ struct Cell {
 	let col: Int
 	var value: Int?
 
-	mutating func setValue(value: Int) {
+	mutating func setValue(value: Int?) {
 		self.value = value
 	}
 }

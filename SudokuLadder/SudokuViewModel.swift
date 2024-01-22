@@ -163,6 +163,57 @@ class SudokuViewModelV2: ObservableObject {
 			}
 		}
 	}
+
+	func handleDelete() {
+		let selected = selected()
+		switch currentMode {
+		case .BigNumber:
+			for cell in selected {
+				if cell.cell.value != nil {
+					cell.clearValue()
+					continue
+				}
+				if cell.centerMarks.count > 0 {
+					cell.clearCenterMark()
+					continue
+				}
+				if cell.pencilMarks.count > 0 {
+					cell.clearPencilMarks()
+					continue
+				}
+			}
+		case .CornerNumber:
+			for cell in selected {
+				if cell.pencilMarks.count > 0 {
+					cell.clearPencilMarks()
+					continue
+				}
+				if cell.cell.value != nil {
+					cell.clearValue()
+					continue
+				}
+				if cell.centerMarks.count > 0 {
+					cell.clearCenterMark()
+					continue
+				}
+			}
+		case .MiddleNumber:
+			for cell in selected {
+				if cell.centerMarks.count > 0 {
+					cell.clearCenterMark()
+					continue
+				}
+				if cell.cell.value != nil {
+					cell.clearValue()
+					continue
+				}
+				if cell.pencilMarks.count > 0 {
+					cell.clearPencilMarks()
+					continue
+				}
+			}
+		}
+	}
 }
 
 // CellViewModel is the model that layers UI concerns on top of cells.
@@ -207,12 +258,24 @@ class CellViewModel: ObservableObject, Hashable {
 		cell.setValue(value: value)
 	}
 
+	func clearValue() {
+		cell.setValue(value: nil)
+	}
+
 	func addPencilMark(value: Int) {
 		pencilMarks.insert(value)
 	}
 
+	func clearPencilMarks() {
+		pencilMarks = Set()
+	}
+
 	func addCenterMark(value: Int) {
 		centerMarks.insert(value)
+	}
+
+	func clearCenterMark() {
+		centerMarks = Set()
 	}
 
 	func row() -> Int { return cell.row }
