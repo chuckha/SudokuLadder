@@ -15,6 +15,7 @@ let cellHeight: CGFloat = 40
 class SudokuViewModelV2: ObservableObject {
 	private var sudoku: Sudoku
 	@Published var cells: [[CellViewModel]]
+	@Published var currentMode: ControlMode = .BigNumber
 
 	init(sudoku: Sudoku) {
 		self.sudoku = sudoku
@@ -132,16 +133,47 @@ class SudokuViewModelV2: ObservableObject {
 			}
 		}
 	}
+
+	func selected() -> [CellViewModel] {
+		var out: [CellViewModel] = []
+		for (i, cellRow) in cells.enumerated() {
+			for (j, _) in cellRow.enumerated() {
+				if cells[i][j].selected {
+					out.append(cells[i][j])
+				}
+			}
+		}
+		return out
+	}
+
+	func handleNumInput(input: Int) {
+		let selected = selected()
+		switch currentMode {
+		case .BigNumber:
+			for cell in selected {
+				cells[cell.row()][cell.col()].setValue(value: input)
+			}
+		case .CornerNumber:
+			for cell in selected {
+				cells[cell.row()][cell.col()].addPencilMark(value: input)
+			}
+		case .MiddleNumber:
+			for cell in selected {
+				cells[cell.row()][cell.col()].addCenterMark(value: input)
+			}
+		}
+	}
 }
 
 // CellViewModel is the model that layers UI concerns on top of cells.
 class CellViewModel: ObservableObject, Hashable {
 	let id = UUID()
-	private var cell: Cell
+	@Published var cell: Cell
 	@Published var boxBorder: Edge.Set = []
 	@Published var selectedBorder: Edge.Set = []
-
 	@Published var selected: Bool = false
+	@Published var pencilMarks: Set<Int> = Set()
+	@Published var centerMarks: Set<Int> = Set()
 
 	let selectedColor = Color(red: 0.2, green: 0.2, blue: 0.6, opacity: 0.8)
 	let defaultColor = Color(red: 0.8, green: 0.8, blue: 0.8)
@@ -170,10 +202,17 @@ class CellViewModel: ObservableObject, Hashable {
 		selected = true
 	}
 
-	func pencilMarks() -> [String] {
-		return cell.pencilMarks.map { mark in
-			mark.description
-		}
+	// TODO: consider adding feature: when you click number and the number is already set, unset the
+	func setValue(value: Int) {
+		cell.setValue(value: value)
+	}
+
+	func addPencilMark(value: Int) {
+		pencilMarks.insert(value)
+	}
+
+	func addCenterMark(value: Int) {
+		centerMarks.insert(value)
 	}
 
 	func row() -> Int { return cell.row }
@@ -184,6 +223,7 @@ class CellViewModel: ObservableObject, Hashable {
 		selectedBorder.remove(edge)
 	}
 
+	// TODO: set trailing and bottom on all; then set top on the top row and leading on the leading column
 	func setSelectionBorder(top: Bool = false, leading: Bool = false, bottom: Bool = false, trailing: Bool = false) {
 		if top {
 			selectedBorder.insert(.top)

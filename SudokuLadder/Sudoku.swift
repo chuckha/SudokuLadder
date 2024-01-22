@@ -10,24 +10,9 @@ struct Cell {
 	let row: Int
 	let col: Int
 	var value: Int?
-	var pencilMarks: [Int] = []
-	var centerMarks: [Int] = []
 
-	// TODO: consider adding feature: when you click number and the number is already set, unset the number
 	mutating func setValue(value: Int) {
 		self.value = value
-	}
-
-	mutating func addPencilMark(value: Int) {
-		// TODO: do not allow duplicates
-		// TODO: sort the list
-		pencilMarks.append(value)
-	}
-
-	mutating func addCenterMark(value: Int) {
-		// TODO: do not allow duplicates
-		// TODO: sort the list
-		centerMarks.append(value)
 	}
 }
 

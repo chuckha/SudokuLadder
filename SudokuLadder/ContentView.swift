@@ -62,6 +62,8 @@ func layoutToSuduoku(_ dic: [[String: Int]]) -> Sudoku {
 // - [x] add borders to cells
 // - [] constraints (cell constraints, row constraints, column constraints, box constraints, grid constraints, etc)
 // - [] edit value
+// - [] add middle marks
+// - [] controls
 
 struct ContentView: View {
 	@StateObject private var sudoku: SudokuViewModelV2 = .init(
@@ -87,6 +89,10 @@ struct ContentView: View {
 						}
 						sudoku.selectCellFromPoint(at: value.location)
 					})
+			HStack {
+				NumpadView(sudoku: sudoku)
+				ControlsView(controlMode: $sudoku.currentMode)
+			}
 		}
 	}
 }
@@ -112,22 +118,24 @@ struct CellView: View {
 						.stroke()
 				)
 			if cell.display() == "" {
-				let (top, bottom) = splitArray(cell.pencilMarks())
+				let (top, bottom) = splitArray(Array(cell.pencilMarks).sorted())
 				VStack {
-					HStack {
+					HStack(spacing: 4) {
 						ForEach(top, id: \.self) { num in
-							Text(num).font(.system(size: 10))
+							Text(num.description)
+								.font(.system(size: 10))
 						}
 					}
 					Spacer()
-					HStack {
+					HStack(spacing: 1) {
 						ForEach(bottom, id: \.self) { num in
-							Text(num).font(.system(size: 10))
+							Text(num.description)
+								.font(.system(size: 10))
 						}
 					}
 				}
 				.frame(width: cellWidth, height: cellHeight)
-				Text("1").font(.system(size: 10))
+//				Text("1").font(.system(size: 10))
 			} else {
 				Text(cell.display())
 					.font(.system(size: 30))
@@ -146,25 +154,25 @@ func splitArray<T>(_ array: [T]) -> ([T], [T]) {
 	}
 }
 
-// struct NumpadView: View {
-//    @ObservedObject var viewModel: SudokuViewModelV2
-//
-//    var body: some View {
-//        VStack{
-//            ForEach(0...2, id: \.self) { i in
-//                HStack{
-//                    ForEach(0...2, id: \.self) { j in
-//                        let val = i*3+j+1
-//                        Text("\(val)")
-//                            .onTapGesture {
-//                                viewModel.handleNumInput(input: val)
-//                            }
-//                    }
-//                }
-//            }
-//        }
-//    }
-// }
+struct NumpadView: View {
+	@ObservedObject var sudoku: SudokuViewModelV2
+
+	var body: some View {
+		VStack {
+			ForEach(0 ... 2, id: \.self) { i in
+				HStack {
+					ForEach(0 ... 2, id: \.self) { j in
+						let val = i * 3 + j + 1
+						Text("\(val)")
+							.onTapGesture {
+								sudoku.handleNumInput(input: val)
+							}
+					}
+				}
+			}
+		}
+	}
+}
 
 struct ControlsView: View {
 	@Binding var controlMode: ControlMode
@@ -172,15 +180,33 @@ struct ControlsView: View {
 	var body: some View {
 		HStack {
 			VStack {
-				Button("Big") {
+				Button(action: {
 					controlMode = .BigNumber
-				}
-				Button("Corner") {
+				}, label: {
+					Text("9")
+						.font(.system(size: 32))
+				})
+				Button(action: {
 					controlMode = .CornerNumber
-				}
-				Button("Middle") {
+				}, label: {
+					VStack {
+						HStack {
+							Text("1")
+							Text("2")
+						}
+						HStack {
+							Text("3")
+						}
+					}
+				})
+				Button(action: {
 					controlMode = .MiddleNumber
-				}
+				}, label: {
+					HStack {
+						Text("1")
+						Text("2")
+					}
+				})
 			}
 		}
 	}
