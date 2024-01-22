@@ -135,7 +135,11 @@ struct CellView: View {
 					}
 				}
 				.frame(width: cellWidth, height: cellHeight)
-//				Text("1").font(.system(size: 10))
+				HStack(spacing: 0) {
+					ForEach(Array(cell.centerMarks).sorted(), id: \.self) { num in
+						Text(num.description).font(.system(size: 7))
+					}
+				}.frame(width: cellWidth, height: cellHeight)
 			} else {
 				Text(cell.display())
 					.font(.system(size: 30))
