@@ -270,7 +270,7 @@ class CellViewModel: ObservableObject, Hashable {
 	@Published var pencilMarks: Set<Int> = Set()
 	@Published var centerMarks: Set<Int> = Set()
 
-	let selectedColor = Color(red: 0.2, green: 0.2, blue: 0.6, opacity: 0.8)
+	let selectedColor = Color(red: 0.2, green: 0.2, blue: 0.6, opacity: 0.6)
 	let defaultColor = Color(red: 0.8, green: 0.8, blue: 0.8)
 
 	init(cell: Cell) {

@@ -102,7 +102,7 @@ struct ContentView: View {
 
 struct CellView: View {
 	@ObservedObject var cell: CellViewModel
-	let borderWidth: CGFloat = 4.0
+	let borderWidth: CGFloat = 6.0
 	var body: some View {
 		let offset: CGFloat = borderWidth * 0.5
 		ZStack {
