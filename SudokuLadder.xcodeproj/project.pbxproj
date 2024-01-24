@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E221CF462B5B46FB00226B0E /* Sudoku.swift in Sources */ = {isa = PBXBuildFile; fileRef = E221CF452B5B46FB00226B0E /* Sudoku.swift */; };
-		E221CF482B5C6BAA00226B0E /* SudokuViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E221CF472B5C6BAA00226B0E /* SudokuViewModel.swift */; };
 		E2E766442B590B1E00F146F3 /* SudokuLadderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2E766432B590B1E00F146F3 /* SudokuLadderApp.swift */; };
 		E2E766462B590B1E00F146F3 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2E766452B590B1E00F146F3 /* ContentView.swift */; };
 		E2E766482B590B1F00F146F3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E2E766472B590B1F00F146F3 /* Assets.xcassets */; };
@@ -36,8 +34,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		E221CF452B5B46FB00226B0E /* Sudoku.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sudoku.swift; sourceTree = "<group>"; };
-		E221CF472B5C6BAA00226B0E /* SudokuViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SudokuViewModel.swift; sourceTree = "<group>"; };
 		E2E766402B590B1E00F146F3 /* SudokuLadder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SudokuLadder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2E766432B590B1E00F146F3 /* SudokuLadderApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SudokuLadderApp.swift; sourceTree = "<group>"; };
 		E2E766452B590B1E00F146F3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -100,8 +96,6 @@
 			children = (
 				E2E766432B590B1E00F146F3 /* SudokuLadderApp.swift */,
 				E2E766452B590B1E00F146F3 /* ContentView.swift */,
-				E221CF452B5B46FB00226B0E /* Sudoku.swift */,
-				E221CF472B5C6BAA00226B0E /* SudokuViewModel.swift */,
 				E2E766472B590B1F00F146F3 /* Assets.xcassets */,
 				E2E766492B590B1F00F146F3 /* Preview Content */,
 			);
@@ -265,8 +259,6 @@
 			files = (
 				E2E766462B590B1E00F146F3 /* ContentView.swift in Sources */,
 				E2E766442B590B1E00F146F3 /* SudokuLadderApp.swift in Sources */,
-				E221CF462B5B46FB00226B0E /* Sudoku.swift in Sources */,
-				E221CF482B5C6BAA00226B0E /* SudokuViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
