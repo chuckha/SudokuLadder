@@ -179,48 +179,6 @@ extension View {
 	}
 }
 
-protocol ConstraintName {
-	var name: String { get }
-}
-
-protocol RowConstraint: ConstraintName {
-	func valid(cell: Cell, row: [Cell]) -> Bool
-}
-
-protocol ColumnConstraint: ConstraintName {
-	func valid(cell: Cell, col: [Cell]) -> Bool
-}
-
-struct UniqueInRow: RowConstraint {
-	var name: String = "UniqueInRow"
-	func valid(cell: Cell, row: [Cell]) -> Bool {
-		for c in row {
-			if c.col == cell.col {
-				continue
-			}
-			if c.effectiveValue() == cell.effectiveValue() {
-				return false
-			}
-		}
-		return true
-	}
-}
-
-struct UniqueInColumn: ColumnConstraint {
-	var name: String = "UniqueInColumn"
-	func valid(cell: Cell, col: [Cell]) -> Bool {
-		for c in col {
-			if c.row == cell.row {
-				continue
-			}
-			if c.effectiveValue() == cell.effectiveValue() {
-				return false
-			}
-		}
-		return true
-	}
-}
-
 class GridGame: ObservableObject {
 	@Published var cells: [[Cell]]
 	let height: Int
@@ -229,7 +187,7 @@ class GridGame: ObservableObject {
 	@Published var inputMode: ControlMode = .BigNumber
 	let rowConstraints: [RowConstraint] = [UniqueInRow()]
 	let columnConstraints: [ColumnConstraint] = [UniqueInColumn()]
-	let regionConstraints: [String] = []
+	let regionConstraints: [RegionConstraint] = [UniqueInRegion()]
 	let customConstraints: [String] = []
 
 	init(cells: [[Cell]]) {
@@ -269,7 +227,7 @@ class GridGame: ObservableObject {
 			cells[row][col].failedConstraints.remove(rowc.name)
 		}
 		var column: [Cell] = []
-		for (i, row) in cells.enumerated() {
+		for row in cells {
 			for (j, cell) in row.enumerated() {
 				guard j == col else {
 					continue
@@ -283,6 +241,23 @@ class GridGame: ObservableObject {
 				continue
 			}
 			cells[row][col].failedConstraints.remove(colc.name)
+		}
+		var regionCells: [Cell] = []
+		let region: Int = cells[row][col].region
+		for row in cells {
+			for (j, cell) in row.enumerated() {
+				guard cell.region == region else {
+					continue
+				}
+				regionCells.append(cell)
+			}
+		}
+		for regc in regionConstraints {
+			if !regc.valid(cell: cells[row][col], region: regionCells) {
+				cells[row][col].failedConstraints.insert(regc.name)
+				continue
+			}
+			cells[row][col].failedConstraints.remove(regc.name)
 		}
 	}
 
