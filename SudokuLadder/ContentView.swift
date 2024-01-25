@@ -10,7 +10,23 @@
 
 import SwiftUI
 
-//
+struct GameConfig {
+	var layout: [[String: Int]]
+	var rowConstraints: [RowConstraint]
+	var columnConstraints: [ColumnConstraint]
+	var regionConstraints: [RegionConstraint]
+}
+
+// intro to killer cages:
+// https://sudokupad.app/u1gswfvw2x
+let killerCageIntro: [[String: Int]] = [
+	c(0, 0, 0), c(0, 1, 0), c(0, 2, 1), c(0, 3, 1),
+	c(1, 0, 0), c(1, 1, 0), c(1, 2, 1), c(1, 3, 1),
+	c(2, 0, 2), c(2, 1, 2), c(2, 2, 3), c(2, 3, 3),
+	c(3, 0, 2), c(3, 1, 2), c(3, 2, 3), c(3, 3, 3),
+]
+
+// normal sudoku, easy
 let normalSudoku: [[String: Int]] = [
 	c(0, 0, 0, 9), c(0, 1, 0, 2), c(0, 2, 0, 6), c(0, 3, 1), c(0, 4, 1, 4),
 	c(0, 5, 1), c(0, 6, 2), c(0, 7, 2, 8),
@@ -51,14 +67,35 @@ func c(_ row: Int, _ col: Int, _ box: Int, _ given: Int? = nil) -> [String: Int]
 	return basic
 }
 
-func layoutToSuduoku(_ dic: [[String: Int]]) -> GridGame {
+func dims(_ dic: [[String: Int]]) -> (Int, Int) {
+	var height: Int = -9999
+	var width: Int = -9999
+	for entry in dic {
+		for (k, v) in entry {
+			if k == "col" {
+				if v > width {
+					width = v
+				}
+			}
+			if k == "row" {
+				if v > height {
+					height = v
+				}
+			}
+		}
+	}
+	return (height + 1, width + 1)
+}
+
+func layoutToSudoku(_ dic: [[String: Int]]) -> GridGame {
 	let cells = dic.map { entry -> Cell in
 		Cell(row: entry["row"]!, col: entry["col"]!, region: entry["box"]!, given: entry["given"])
 	}
+	let (height, width): (Int, Int) = dims(dic)
 	var sudokuCells: [[Cell]] = []
-	for _ in 0 ..< 9 {
+	for _ in 0 ..< width {
 		var row: [Cell] = []
-		for _ in 0 ..< 9 {
+		for _ in 0 ..< height {
 			row.append(Cell(row: 0, col: 0, region: 0))
 		}
 		sudokuCells.append(row)
@@ -189,6 +226,7 @@ class GridGame: ObservableObject {
 	let columnConstraints: [ColumnConstraint] = [UniqueInColumn()]
 	let regionConstraints: [RegionConstraint] = [UniqueInRegion()]
 	let customConstraints: [String] = []
+	@Published var victory: Bool = false
 
 	init(cells: [[Cell]]) {
 		// TODO: guard against empty cells
@@ -196,6 +234,16 @@ class GridGame: ObservableObject {
 		height = cells.count
 		width = cells[0].count
 		setStaticBorders()
+	}
+
+	func reset() {
+		for (i, row) in cells.enumerated() {
+			for (j, _) in row.enumerated() {
+				cells[i][j].clearValue()
+				cells[i][j].clearCenterMarks()
+				cells[i][j].clearPencilMarks()
+			}
+		}
 	}
 
 	func selectCell(_ rowidx: Int, _ colidx: Int) {
@@ -245,7 +293,7 @@ class GridGame: ObservableObject {
 		var regionCells: [Cell] = []
 		let region: Int = cells[row][col].region
 		for row in cells {
-			for (j, cell) in row.enumerated() {
+			for cell in row {
 				guard cell.region == region else {
 					continue
 				}
@@ -259,6 +307,21 @@ class GridGame: ObservableObject {
 			}
 			cells[row][col].failedConstraints.remove(regc.name)
 		}
+		checkVictory()
+	}
+
+	func checkVictory() {
+		for row in cells {
+			for cell in row {
+				if cell.effectiveValue() == nil {
+					return
+				}
+				if cell.failedConstraints.count > 0 {
+					return
+				}
+			}
+		}
+		victory = true
 	}
 
 	func addPencilMark(row: Int, col: Int, value: Int) {
@@ -582,7 +645,8 @@ enum ControlMode: String, Equatable, CaseIterable {
 }
 
 struct ContentView: View {
-	@StateObject private var grid: GridGame = layoutToSuduoku(normalSudoku)
+	@StateObject private var grid: GridGame = layoutToSudoku(killerCageIntro)
+	//    @StateObject private var grid: GridGame = layoutToSudoku(normalSudoku)
 
 	var body: some View {
 		VStack {
@@ -593,6 +657,11 @@ struct ContentView: View {
 				ControlView(controlMode: $grid.inputMode)
 			}
 		}
+		.sheet(isPresented: $grid.victory, onDismiss: {
+			grid.reset()
+		}, content: {
+			Text("you won!")
+		})
 		.environmentObject(grid)
 	}
 }

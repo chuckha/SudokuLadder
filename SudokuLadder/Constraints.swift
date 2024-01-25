@@ -11,6 +11,11 @@ protocol ConstraintName {
 	var name: String { get }
 }
 
+struct Constraint {
+	let name: String
+	let group: [Cell]
+}
+
 protocol RowConstraint: ConstraintName {
 	func valid(cell: Cell, row: [Cell]) -> Bool
 }
@@ -21,6 +26,10 @@ protocol ColumnConstraint: ConstraintName {
 
 protocol RegionConstraint: ConstraintName {
 	func valid(cell: Cell, region: [Cell]) -> Bool
+}
+
+protocol CustomConstraint: ConstraintName {
+	func valid(cell: Cell, region: [Cell]) -> bool
 }
 
 struct UniqueInRow: RowConstraint {
@@ -66,4 +75,8 @@ struct UniqueInRegion: RegionConstraint {
 		}
 		return true
 	}
+}
+
+struct KillerCage: CustomConstraint {
+	var name: String = "KillerCage"
 }
