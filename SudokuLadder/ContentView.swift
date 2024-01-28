@@ -12,19 +12,37 @@ import SwiftUI
 
 struct GameConfig {
 	var layout: [[String: Int]]
-	var rowConstraints: [RowConstraint]
-	var columnConstraints: [ColumnConstraint]
-	var regionConstraints: [RegionConstraint]
+	var constraints: [Constraint]
+	func asGridGame() -> GridGame {
+		return GridGame(cells: layoutToSudoku(layout),
+		                constraints: constraints)
+	}
 }
 
 // intro to killer cages:
 // https://sudokupad.app/u1gswfvw2x
-let killerCageIntro: [[String: Int]] = [
-	c(0, 0, 0), c(0, 1, 0), c(0, 2, 1), c(0, 3, 1),
-	c(1, 0, 0), c(1, 1, 0), c(1, 2, 1), c(1, 3, 1),
-	c(2, 0, 2), c(2, 1, 2), c(2, 2, 3), c(2, 3, 3),
-	c(3, 0, 2), c(3, 1, 2), c(3, 2, 3), c(3, 3, 3),
-]
+func killerCateIntro() -> GameConfig {
+	let layout = [
+		c(0, 0, 0), c(0, 1, 0), c(0, 2, 1), c(0, 3, 1),
+		c(1, 0, 0), c(1, 1, 0), c(1, 2, 1), c(1, 3, 1),
+		c(2, 0, 2), c(2, 1, 2), c(2, 2, 3), c(2, 3, 3),
+		c(3, 0, 2), c(3, 1, 2), c(3, 2, 3), c(3, 3, 3),
+	]
+	let w = 4; let h = 4
+	var constraints: [Constraint] = []
+	for i in 0 ..< h {
+		constraints.append(Constraint(name: "Unique in row \(i)", cells: (0 ..< w).map { x in Point(row: i, col: x) }, display: true, valid: uniqueInRegion))
+	}
+	for i in 0 ..< w {
+		constraints.append(Constraint(name: "Unique in column \(i)", cells: (0 ..< h).map { x in Point(row: x, col: i) }, display: true, valid: uniqueInRegion))
+	}
+	constraints.append(
+		Constraint(name: "killer-cage-1",
+		           cells: [Point(row: 0, col: 0), Point(row: 0, col: 1)],
+		           valid: KillerCageWithSumConstraint(sum: 5))
+	)
+	return GameConfig(layout: layout, constraints: constraints)
+}
 
 // normal sudoku, easy
 let normalSudoku: [[String: Int]] = [
@@ -87,7 +105,7 @@ func dims(_ dic: [[String: Int]]) -> (Int, Int) {
 	return (height + 1, width + 1)
 }
 
-func layoutToSudoku(_ dic: [[String: Int]]) -> GridGame {
+func layoutToSudoku(_ dic: [[String: Int]]) -> [[Cell]] {
 	let cells = dic.map { entry -> Cell in
 		Cell(row: entry["row"]!, col: entry["col"]!, region: entry["box"]!, given: entry["given"])
 	}
@@ -103,7 +121,7 @@ func layoutToSudoku(_ dic: [[String: Int]]) -> GridGame {
 	for cell in cells {
 		sudokuCells[cell.row][cell.col] = cell
 	}
-	return GridGame(cells: sudokuCells)
+	return sudokuCells
 }
 
 func splitArray<T>(_ array: [T]) -> ([T], [T]) {
@@ -122,77 +140,7 @@ let givenColor = Color.primary
 let inputColor = Color(red: 0.3, green: 0.3, blue: 0.9)
 let constraintFailedBackgroundColor = Color(red: 0.9, green: 0.7, blue: 0.7)
 let selectedBackgroundColor = Color(red: 0.2, green: 0.2, blue: 0.8, opacity: 0.3)
-
-struct Cell: Hashable {
-	var row: Int
-	var col: Int
-	var region: Int = 0
-	var value: Int? = nil
-	var given: Int? = nil
-	var selected: Bool = false
-	var regionBorders: [Edge] = []
-	var edgeBorders: [Edge] = []
-	var pencilMarks: Set<Int> = []
-	var centerMarks: Set<Int> = []
-	var failedConstraints: Set<String> = []
-
-	func effectiveValue() -> Int? {
-		return given ?? value
-	}
-
-	func displayValue() -> String {
-		return given?.description ?? value?.description ?? ""
-	}
-
-	// foregroundColor is more like background color
-	func foregroundColor() -> Color {
-		if failedConstraints.count > 0 {
-			return constraintFailedBackgroundColor
-		}
-		if selected {
-			return selectedBackgroundColor
-		}
-		return Color.clear
-	}
-
-	// displayColor is text
-	func displayColor() -> Color {
-		if given != nil {
-			return givenColor
-		}
-		return inputColor
-	}
-
-	mutating func setValue(val: Int?) {
-		value = val
-	}
-
-	mutating func addPencilMark(val: Int) {
-		pencilMarks.insert(val)
-	}
-
-	mutating func addCenterMark(val: Int) {
-		centerMarks.insert(val)
-	}
-
-	mutating func clearValue() {
-		value = nil
-	}
-
-	mutating func clearCenterMarks() {
-		centerMarks = Set()
-	}
-
-	mutating func clearPencilMarks() {
-		pencilMarks = Set()
-	}
-
-	// Hashable protocol
-	func hash(into hasher: inout Hasher) {
-		hasher.combine(row)
-		hasher.combine(col)
-	}
-}
+let failedAndSelected = mix(c1: constraintFailedBackgroundColor, c2: selectedBackgroundColor)
 
 struct EdgeBorder: Shape {
 	var width: CGFloat
@@ -216,227 +164,6 @@ extension View {
 	}
 }
 
-class GridGame: ObservableObject {
-	@Published var cells: [[Cell]]
-	let height: Int
-	let width: Int
-	var selected: Set<Cell> = Set()
-	@Published var inputMode: ControlMode = .BigNumber
-	let rowConstraints: [RowConstraint] = [UniqueInRow()]
-	let columnConstraints: [ColumnConstraint] = [UniqueInColumn()]
-	let regionConstraints: [RegionConstraint] = [UniqueInRegion()]
-	let customConstraints: [String] = []
-	@Published var victory: Bool = false
-
-	init(cells: [[Cell]]) {
-		// TODO: guard against empty cells
-		self.cells = cells
-		height = cells.count
-		width = cells[0].count
-		setStaticBorders()
-	}
-
-	func reset() {
-		for (i, row) in cells.enumerated() {
-			for (j, _) in row.enumerated() {
-				cells[i][j].clearValue()
-				cells[i][j].clearCenterMarks()
-				cells[i][j].clearPencilMarks()
-			}
-		}
-	}
-
-	func selectCell(_ rowidx: Int, _ colidx: Int) {
-		cells[rowidx][colidx].selected = true
-		selected.insert(cells[rowidx][colidx])
-	}
-
-	func clearSelection() {
-		for c in selected {
-			cells[c.row][c.col].selected = false
-		}
-		selected = Set()
-	}
-
-	func setCellValue(row: Int, col: Int, value: Int?) {
-		guard cells[row][col].given == nil else {
-			return
-		}
-		cells[row][col].setValue(val: value)
-		if value == nil {
-			cells[row][col].failedConstraints = Set()
-			return
-		}
-		for rowc in rowConstraints {
-			if !rowc.valid(cell: cells[row][col], row: cells[row]) {
-				cells[row][col].failedConstraints.insert(rowc.name)
-				continue
-			}
-			cells[row][col].failedConstraints.remove(rowc.name)
-		}
-		var column: [Cell] = []
-		for row in cells {
-			for (j, cell) in row.enumerated() {
-				guard j == col else {
-					continue
-				}
-				column.append(cell)
-			}
-		}
-		for colc in columnConstraints {
-			if !colc.valid(cell: cells[row][col], col: column) {
-				cells[row][col].failedConstraints.insert(colc.name)
-				continue
-			}
-			cells[row][col].failedConstraints.remove(colc.name)
-		}
-		var regionCells: [Cell] = []
-		let region: Int = cells[row][col].region
-		for row in cells {
-			for cell in row {
-				guard cell.region == region else {
-					continue
-				}
-				regionCells.append(cell)
-			}
-		}
-		for regc in regionConstraints {
-			if !regc.valid(cell: cells[row][col], region: regionCells) {
-				cells[row][col].failedConstraints.insert(regc.name)
-				continue
-			}
-			cells[row][col].failedConstraints.remove(regc.name)
-		}
-		checkVictory()
-	}
-
-	func checkVictory() {
-		for row in cells {
-			for cell in row {
-				if cell.effectiveValue() == nil {
-					return
-				}
-				if cell.failedConstraints.count > 0 {
-					return
-				}
-			}
-		}
-		victory = true
-	}
-
-	func addPencilMark(row: Int, col: Int, value: Int) {
-		guard cells[row][col].given == nil else {
-			return
-		}
-		cells[row][col].addPencilMark(val: value)
-	}
-
-	func addCenterMark(row: Int, col: Int, value: Int) {
-		guard cells[row][col].given == nil else {
-			return
-		}
-		cells[row][col].addCenterMark(val: value)
-	}
-
-	func handleInput(input: Int) {
-		switch inputMode {
-		case .BigNumber:
-			for cell in selected {
-				setCellValue(row: cell.row, col: cell.col, value: input)
-			}
-		case .CornerNumber:
-			for cell in selected {
-				addPencilMark(row: cell.row, col: cell.col, value: input)
-			}
-		case .MiddleNumber:
-			for cell in selected {
-				addCenterMark(row: cell.row, col: cell.col, value: input)
-			}
-		}
-	}
-
-	func handleDelete() {
-		switch inputMode {
-		case .BigNumber:
-			for cell in selected {
-				if cells[cell.row][cell.col].value != nil {
-					setCellValue(row: cell.row, col: cell.col, value: nil)
-					continue
-				}
-				if cells[cell.row][cell.col].centerMarks.count > 0 {
-					cells[cell.row][cell.col].clearCenterMarks()
-					continue
-				}
-				if cells[cell.row][cell.col].pencilMarks.count > 0 {
-					cells[cell.row][cell.col].clearPencilMarks()
-					continue
-				}
-			}
-		case .CornerNumber:
-			for cell in selected {
-				if cells[cell.row][cell.col].pencilMarks.count > 0 {
-					cells[cell.row][cell.col].clearPencilMarks()
-					continue
-				}
-				if cells[cell.row][cell.col].value != nil {
-					setCellValue(row: cell.row, col: cell.col, value: nil)
-					continue
-				}
-				if cells[cell.row][cell.col].centerMarks.count > 0 {
-					cells[cell.row][cell.col].clearCenterMarks()
-					continue
-				}
-			}
-		case .MiddleNumber:
-			for cell in selected {
-				if cells[cell.row][cell.col].centerMarks.count > 0 {
-					cells[cell.row][cell.col].clearCenterMarks()
-					continue
-				}
-				if cells[cell.row][cell.col].value != nil {
-					setCellValue(row: cell.row, col: cell.col, value: nil)
-					continue
-				}
-				if cells[cell.row][cell.col].pencilMarks.count > 0 {
-					cells[cell.row][cell.col].clearPencilMarks()
-					continue
-				}
-			}
-		}
-	}
-
-	private func setStaticBorders() {
-		for (i, row) in cells.enumerated() {
-			for (j, cell) in row.enumerated() {
-				if i == 0 {
-					cells[i][j].edgeBorders.append(.top)
-				}
-				if i > 0 && cells[i - 1][j].region != cell.region {
-					cells[i][j].regionBorders.append(.top)
-				}
-				if i == height - 1 {
-					cells[i][j].edgeBorders.append(.bottom)
-				}
-				if i < height - 1 && cells[i + 1][j].region != cell.region {
-					cells[i][j].regionBorders.append(.bottom)
-				}
-				if j == 0 {
-					cells[i][j].edgeBorders.append(.leading)
-				}
-				if j > 0 && cells[i][j - 1].region != cell.region {
-					cells[i][j].regionBorders.append(.leading)
-				}
-				if j == width - 1 {
-					cells[i][j].edgeBorders.append(.trailing)
-				}
-				if j < width - 1 && cells[i][j + 1].region != cell.region {
-					cells[i][j].regionBorders.append(.trailing)
-				}
-			}
-		}
-	}
-}
-
 struct CellView: View {
 	@Binding var cell: Cell
 
@@ -451,6 +178,7 @@ struct CellView: View {
 			.overlay(
 				Rectangle()
 					.foregroundColor(cell.foregroundColor())
+					.border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/)
 			)
 			.overlay(cell.displayValue() != "" ?
 				GivenNumber(text: cell.displayValue(), style: cell.displayColor()) : nil
@@ -538,6 +266,9 @@ struct GridView: View {
 					}
 					selectCellFromPoint(at: value.location)
 				}
+		)
+		.overlay(
+			KillerCageView()
 		)
 	}
 
@@ -645,7 +376,7 @@ enum ControlMode: String, Equatable, CaseIterable {
 }
 
 struct ContentView: View {
-	@StateObject private var grid: GridGame = layoutToSudoku(killerCageIntro)
+	@StateObject private var grid: GridGame = killerCateIntro().asGridGame()
 	//    @StateObject private var grid: GridGame = layoutToSudoku(normalSudoku)
 
 	var body: some View {
